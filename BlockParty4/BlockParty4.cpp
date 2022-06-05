@@ -296,9 +296,8 @@ int main()
     for (auto &row : grid)
     {
         for (auto &num : row)
-        {
             ::cout << setw(3) << num << " ";
-        }
+
         ::cout << endl;
     }
 
