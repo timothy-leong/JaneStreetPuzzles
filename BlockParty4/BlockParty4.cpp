@@ -91,6 +91,7 @@ int main()
         {{7, 7}, {7, 8}, {8, 7}, {8, 8}},
         {{7, 3}, {8, 3}, {8, 4}, {9, 4}, {9, 5}},
         {{7, 5}}};
+
     // vector<vector<pair<int, int>>> components{
     //     {{0, 0}, {0, 1}, {1, 1}, {1, 2}, {2, 2}},
     //     {{2, 1}},
@@ -147,7 +148,7 @@ int main()
     /*
          We need a function to get all cells exactly distance k away from a given cell
     */
-    auto distance_k_away = [](vector<vector<int>> &grid, const int row, const int col, int k) -> vector<pair<int, int>>
+    auto distance_k_away = [&grid](const int row, const int col, int k) -> vector<pair<int, int>>
     {
         vector<pair<int, int>> result;
         for (int possible_row{max(0, row - k)}; possible_row <= min(static_cast<int>(grid.size()) - 1, row + k); ++possible_row)
@@ -167,15 +168,11 @@ int main()
           particular number within distance less than k of a cell:
     */
 
-    auto have_number_less_than_distance_k = [&distance_k_away](vector<vector<int>> &grid,
-                                                               int row,
-                                                               int col,
-                                                               int desired_number,
-                                                               int k) -> bool
+    auto have_number_less_than_distance_k = [&distance_k_away, &grid](int row, int col, int desired_number, int k) -> bool
     {
         for (int distance{1}; distance < k; ++distance)
         {
-            auto cells{distance_k_away(grid, row, col, distance)};
+            auto cells{distance_k_away(row, col, distance)};
             for (auto &[r, c] : cells)
             {
                 if (grid[r][c] == desired_number)
@@ -190,13 +187,13 @@ int main()
         We need a function to insert a number into a grid. It should update the grid, and update `numbers_used`.
         We also need the undo-er for this function
     */
-    auto insert = [&numbers_used, &get_component_id](vector<vector<int>> &grid, int row, int col, int num) -> void
+    auto insert = [&numbers_used, &get_component_id, &grid](int row, int col, int num) -> void
     {
         grid[row][col] = num;
         numbers_used[get_component_id(row, col)][num - 1] = true;
     };
 
-    auto remove = [&numbers_used, &get_component_id](vector<vector<int>> &grid, int row, int col) -> void
+    auto remove = [&numbers_used, &get_component_id, &grid](int row, int col) -> void
     {
         numbers_used[get_component_id(row, col)][grid[row][col] - 1] = false;
         grid[row][col] = 0;
@@ -204,20 +201,19 @@ int main()
 
     // Insert pre-existing numbers into the grid and numbers_used map
     for (auto &[row, column, element] : initial_numbers)
-        insert(grid, row, column, element);
+        insert(row, column, element);
 
     // Define a backtracking function:
-    function<bool(vector<vector<int>> &, int, int)> backtrack = [&needs,
-                                                                 &get_component_id,
-                                                                 &components,
-                                                                 &backtrack,
-                                                                 &have_number_less_than_distance_k,
-                                                                 &numbers_used,
-                                                                 &insert,
-                                                                 &remove,
-                                                                 &distance_k_away](vector<vector<int>> &grid,
-                                                                                   int component_id,
-                                                                                   int component_index) -> bool
+    function<bool(int, int)> backtrack = [&grid,
+                                          &needs,
+                                          &get_component_id,
+                                          &components,
+                                          &backtrack,
+                                          &have_number_less_than_distance_k,
+                                          &numbers_used,
+                                          &insert,
+                                          &remove,
+                                          &distance_k_away](int component_id, int component_index) -> bool
     {
         // If you've reached past the last component, you've succeeded
         if (component_id == static_cast<int>(components.size()))
@@ -225,7 +221,7 @@ int main()
 
         // If you've reached the end of one component, go to the next component
         if (component_index == static_cast<int>(components[component_id].size()))
-            return backtrack(grid, component_id + 1, 0);
+            return backtrack(component_id + 1, 0);
 
         const auto &[row, col] = components[component_id][component_index];
 
@@ -236,15 +232,15 @@ int main()
 
             for (int possible_num{1}; possible_num <= size_of_component; ++possible_num)
             {
-                if (!numbers_used[component_id][possible_num - 1] && !have_number_less_than_distance_k(grid, row, col, possible_num, possible_num))
+                if (!numbers_used[component_id][possible_num - 1] && !have_number_less_than_distance_k(row, col, possible_num, possible_num))
                 {
                     // Try using this number
-                    insert(grid, row, col, possible_num);
+                    insert(row, col, possible_num);
 
-                    if (backtrack(grid, component_id, component_index))
+                    if (backtrack(component_id, component_index))
                         return true;
 
-                    remove(grid, row, col);
+                    remove(row, col);
                 }
             }
 
@@ -260,13 +256,13 @@ int main()
         const int this_number{grid[row][col]};
 
         // Get all cells that are this_number away
-        auto neighbours{distance_k_away(grid, row, col, this_number)};
+        auto neighbours{distance_k_away(row, col, this_number)};
 
         // If any cells have this_number, we don't need to create any more of this_number. Move on
         for (auto &[r, c] : neighbours)
         {
             if (grid[r][c] == this_number)
-                return backtrack(grid, component_id, component_index + 1);
+                return backtrack(component_id, component_index + 1);
         }
 
         // Filter out all the cells that have a number other than 0
@@ -278,17 +274,17 @@ int main()
             if (!needs(get_component_id(row, col), this_number))
                 continue;
 
-            if (have_number_less_than_distance_k(grid, row, col, this_number, this_number))
+            if (have_number_less_than_distance_k(row, col, this_number, this_number))
                 continue;
 
-            insert(grid, row, col, this_number);
+            insert(row, col, this_number);
 
             // Go on with your life, see whether you succeed
-            if (backtrack(grid, component_id, component_index + 1))
+            if (backtrack(component_id, component_index + 1))
                 return true;
 
             // You failed, but you still have more neighbours to try
-            remove(grid, row, col);
+            remove(row, col);
         }
 
         // If you've tried all neighbours, and nobody can be this number away from you, it's a lost cause
@@ -296,7 +292,7 @@ int main()
     };
 
     // Try solving the grid
-    backtrack(grid, 0, 0);
+    backtrack(0, 0);
     for (auto &row : grid)
     {
         for (auto &num : row)
