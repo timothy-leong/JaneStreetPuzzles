@@ -4,6 +4,7 @@
 #include <numeric>
 #include <tuple>
 #include <vector>
+#include "../CppUtils/library.hpp"
 
 using namespace std;
 
@@ -112,14 +113,8 @@ int main()
     }
 
     // Visualise the components
-    for (auto &row : cell_index)
-    {
-        for (auto &num : row)
-        {
-            ::cout << setw(3) << num << " ";
-        }
-        ::cout << endl;
-    }
+    print_matrix(cell_index);
+
     ::cout << endl;
 
     // We need a function to get the component id of a cell
@@ -156,7 +151,7 @@ int main()
             const int column_offset{k - abs(row - possible_row)};
             for (int column : {col + column_offset, col - column_offset})
             {
-                if (0 <= column && column < static_cast<int>(grid[0].size()))
+                if (in_range(column, 0, static_cast<int>(grid[0].size()) - 1))
                     result.push_back({possible_row, column});
             }
         }
@@ -174,10 +169,7 @@ int main()
         {
             auto cells{distance_k_away(row, col, distance)};
             for (auto &[r, c] : cells)
-            {
-                if (grid[r][c] == desired_number)
-                    return true;
-            }
+                return_true_if(grid[r][c] == desired_number);
         }
 
         return false;
@@ -216,8 +208,7 @@ int main()
                                           &distance_k_away](int component_id, int component_index) -> bool
     {
         // If you've reached past the last component, you've succeeded
-        if (component_id == static_cast<int>(components.size()))
-            return true;
+        return_true_if(component_id == static_cast<int>(components.size()));
 
         // If you've reached the end of one component, go to the next component
         if (component_index == static_cast<int>(components[component_id].size()))
@@ -237,8 +228,7 @@ int main()
                     // Try using this number
                     insert(row, col, possible_num);
 
-                    if (backtrack(component_id, component_index))
-                        return true;
+                    return_true_if(backtrack(component_id, component_index));
 
                     remove(row, col);
                 }
@@ -268,20 +258,16 @@ int main()
         // Filter out all the cells that have a number other than 0
         for (const auto &[row, col] : neighbours)
         {
-            if (grid[row][col] != 0)
-                continue;
+            continue_if(grid[row][col] != 0);
 
-            if (!needs(get_component_id(row, col), this_number))
-                continue;
+            continue_if(!needs(get_component_id(row, col), this_number));
 
-            if (have_number_less_than_distance_k(row, col, this_number, this_number))
-                continue;
+            continue_if(have_number_less_than_distance_k(row, col, this_number, this_number));
 
             insert(row, col, this_number);
 
             // Go on with your life, see whether you succeed
-            if (backtrack(component_id, component_index + 1))
-                return true;
+            return_true_if(backtrack(component_id, component_index + 1));
 
             // You failed, but you still have more neighbours to try
             remove(row, col);
@@ -293,13 +279,7 @@ int main()
 
     // Try solving the grid
     backtrack(0, 0);
-    for (auto &row : grid)
-    {
-        for (auto &num : row)
-            ::cout << setw(3) << num << " ";
-
-        ::cout << endl;
-    }
+    print_matrix(grid);
 
     // We need to multiply numbers along a row and sum up the products across rows:
     const int answer = accumulate(grid.begin(), grid.end(), 0,
