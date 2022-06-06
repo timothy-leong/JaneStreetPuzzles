@@ -29,7 +29,7 @@ void print_matrix(vector<vector<T>> &matrix, int width = 3)
     for (auto &row : matrix)
     {
         for (auto &elem : row)
-            ::cout << setw(3) << elem << " ";
+            ::cout << setw(width) << elem << " ";
 
         ::cout << endl;
     }
