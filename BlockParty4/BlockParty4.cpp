@@ -149,10 +149,14 @@ int main()
         for (int possible_row{max(0, row - k)}; possible_row <= min(static_cast<int>(grid.size()) - 1, row + k); ++possible_row)
         {
             const int column_offset{k - abs(row - possible_row)};
+            
             for (int column : {col + column_offset, col - column_offset})
             {
                 if (in_range(column, 0, static_cast<int>(grid[0].size()) - 1))
                     result.push_back({possible_row, column});
+                
+                if (column_offset == 0)
+                    break;
             }
         }
         return result;
