@@ -7,7 +7,7 @@ We will index the faces of our die as follows
 (although the actual value of the die-face can be different):
 
 <p align="center">
-    <img src=die.png />
+    <img src=img/die.png />
 </p>
 
 We can only tip the dice in one of the cardinal directions if the following equation holds:
@@ -27,5 +27,5 @@ During our backtracking, if we move to a square, we change its value to 0, to in
 This is the grid. You start from the yellow and go to the blue:
 
 <p align="center">
-    <img src=die-agony.png>
+    <img src=img/die-agony.png>
 </p>
