@@ -16,7 +16,7 @@ $$c = s + t \times n,$$
 where
 - the number on the cell in that cardinal direction is $c$
 - the score before going to that square is $s$
-- the current turn is $t$ 
+- the next turn is the $t$-th turn 
 - the number on the die-face that would be facing upwards is $n$ 
 
 If there is already a number assigned to the die-face that would be facing upwards, 
