@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 class Die:
     """
     Encapsulates die mechanics.
@@ -8,37 +11,31 @@ class Die:
         We let the number 1 face up in the beginning
         Ref: Orientation follows that of the unfolded die in the README.
         """
-        self.top_face: int = 1
-        self.left_face: int = 5
-        self.right_face: int = 2
-        self.forward_face: int = 3
-        self.backward_face: int = 4
-        self.downward_face: int = 6
-        self.die_face_numbers: list[int] = [0] * 7
+        self.top_face: str = 'T'
+        self.left_face: str = 'L'
+        self.right_face: str = 'R'
+        self.forward_face: str = 'F'
+        self.backward_face: str = 'B'
+        self.downward_face: str = 'D'
+        self.die_face_numbers: defaultdict[str, int] = defaultdict(int)
 
-    def die_face_has_number(self, die_face: int) -> bool:
+    def top_face_has_number(self) -> bool:
         """
-        Returns true if there is a number assigned to the index.
+        Returns true if there is a number assigned to the top face.
         """
-        return self.die_face_numbers[die_face] != 0
+        return self.die_face_numbers[self.top_face] != 0
 
-    def get_die_face_number(self, die_face: int) -> None:
+    def get_top_face_number(self) -> None:
         """
         Returns the number associated with a die-face.
         """
-        return self.die_face_numbers[die_face]
+        return self.die_face_numbers[self.top_face]
 
-    def set_die_face_number(self, die_face: int, number: int) -> None:
+    def set_top_face_number(self, number: str) -> None:
         """
         Assigns a number to the index.
         """
-        self.die_face_numbers[die_face] = number
-
-    def index_of_top_face(self) -> int:
-        """
-        Get the index of the current top face.
-        """
-        return self.top_face
+        self.die_face_numbers[self.top_face] = number
 
     def tip_up(self) -> None:
         """
@@ -85,7 +82,7 @@ class Die:
             self.tip_left()
 
     def serialize(self) -> str:
-        return ''.join(str(num) for num in (
+        return ''.join((
             self.top_face,
             self.left_face,
             self.right_face,
