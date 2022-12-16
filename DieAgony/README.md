@@ -1,4 +1,4 @@
-# Die Agony (not solved yet)
+# Die Agony
 
 Approach:
 
